@@ -10,9 +10,13 @@ import (
 	"syscall"
 	"time"
 	"github.com/go-chi/chi/v5"
+
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/lib/pq"
 	"vibhordubey333/loan-service/config"
+	"vibhordubey333/loan-service/internal/repository"
+	"vibhordubey333/loan-service/internal/handler"
+	"vibhordubey333/loan-service/internal/service"
 )
 
 func main() {
@@ -24,13 +28,27 @@ func main() {
 	}
 	defer db.Close()
 
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Could not establish a connection to the database: %v", err)
+	} else {
+		log.Println("Successfully connected to the database")
+	}
+
+	loanRepo := repository.NewLoanRepository(db)
+
+	loanService := service.NewLoanService(loanRepo)
+
+	// Handler layer
+	loanHandler := handler.NewLoanHandler(loanService)
+	//Router setup
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Route("/loans", func(r chi.Router) {
-
+			r.Post("/", loanHandler.CreateLoan)
+			r.Get("/{id}", loanHandler.GetLoan)
 		})
 	})
 
