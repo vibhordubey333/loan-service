@@ -13,6 +13,10 @@ CREATE TABLE IF NOT EXISTS loans (
     updated_at TIMESTAMPTZ NOT NULL
     );
 
+CREATE INDEX IF NOT EXISTS idx_loans_state ON loans(state);
+CREATE INDEX IF NOT EXISTS idx_loans_borrower ON loans(borrower_id_number);
+
+
 /* Storing loan investments */
 CREATE TABLE IF NOT EXISTS investments (
     id UUID PRIMARY KEY,
@@ -21,3 +25,6 @@ CREATE TABLE IF NOT EXISTS investments (
     amount DECIMAL(15,2) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_investments_loan ON investments(loan_id);
+CREATE INDEX IF NOT EXISTS idx_investments_investor ON investments(investor_id);
