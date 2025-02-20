@@ -18,3 +18,24 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=loanuser
+      - POSTGRES_PASSWORD=loanpassword
+      - POSTGRES_DB=loandb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U loanuser -d loandb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
