@@ -20,11 +20,6 @@ type loanRepository struct {
 	db *sql.DB
 }
 
-func (r *loanRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Loan, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func NewLoanRepository(db *sql.DB) LoanRepository {
 	return &loanRepository{db: db}
 }
@@ -129,4 +124,71 @@ func (r *loanRepository) AddInvestment(ctx context.Context, investment *domain.I
 	}
 
 	return tx.Commit()
+}
+
+func (r *loanRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Loan, error) {
+	loan := &domain.Loan{}
+
+	query := `
+		SELECT 
+			l.id, l.borrower_id_number, l.principal_amount, l.rate, 
+			l.roi, l.state, l.created_at, l.updated_at,
+			l.approval_details, l.disbursement_details, l.agreement_letter_url
+		FROM loans l
+		WHERE l.id = $1`
+
+	var approvalJSON, disbursementJSON sql.NullString
+
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&loan.ID, &loan.BorrowerIDNumber, &loan.PrincipalAmount,
+		&loan.Rate, &loan.ROI, &loan.State, &loan.CreatedAt, &loan.UpdatedAt,
+		&approvalJSON, &disbursementJSON, &loan.AgreementLetterURL,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("loan not found")
+		}
+		return nil, err
+	}
+
+	// Unmarshal approval details if present
+	if approvalJSON.Valid {
+		var approval domain.ApprovalDetails
+		if err := json.Unmarshal([]byte(approvalJSON.String), &approval); err != nil {
+			return nil, err
+		}
+		loan.ApprovalDetails = &approval
+	}
+
+	// Unmarshal disbursement details if present
+	if disbursementJSON.Valid {
+		var disbursement domain.DisbursementDetails
+		if err := json.Unmarshal([]byte(disbursementJSON.String), &disbursement); err != nil {
+			return nil, err
+		}
+		loan.DisbursementDetails = &disbursement
+	}
+
+	// Get investments
+	investmentsQuery := `
+		SELECT id, loan_id, investor_id, amount, created_at
+		FROM investments
+		WHERE loan_id = $1`
+
+	rows, err := r.db.QueryContext(ctx, investmentsQuery, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var inv domain.Investment
+		if err := rows.Scan(&inv.ID, &inv.LoanID, &inv.InvestorID, &inv.Amount, &inv.CreatedAt); err != nil {
+			return nil, err
+		}
+		loan.Investments = append(loan.Investments, inv)
+	}
+
+	return loan, nil
 }
