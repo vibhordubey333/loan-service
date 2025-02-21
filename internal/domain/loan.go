@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"database/sql"
 )
 
 type LoanState string
@@ -29,7 +30,7 @@ type Loan struct {
 	Investments     []Investment     `json:"investments,omitempty"`
 
 	DisbursementDetails *DisbursementDetails `json:"disbursement_details,omitempty"`
-	AgreementLetterURL  string               `json:"agreement_letter_url,omitempty"`
+	AgreementLetterURL  sql.NullString       `json:"agreement_letter_url,omitempty"`
 }
 
 type ApprovalDetails struct {

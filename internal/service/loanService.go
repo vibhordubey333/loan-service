@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"errors"
+	"log"
 )
 
 type LoanService interface {
@@ -96,19 +97,34 @@ func (s *loanService) InvestInLoan(ctx context.Context, loanID, investorID uuid.
 	}
 
 	if err := s.repo.AddInvestment(ctx, investment); err != nil {
+		log.Println("Error while adding investment")
 		return err
 	}
 
 	loan.Investments = append(loan.Investments, *investment)
 
 	if loan.IsFullyInvested() {
+		log.Println("Loan is fully invested")
 		loan.State = domain.LoanStateInvested
 		loan.UpdatedAt = time.Now()
 
 		//Todo: Generate agreement letter
 
 		//Todo: Send emails to all investors
+		agreementURL := "test.com"
 
+		// Send emails to all investors
+		for _, inv := range loan.Investments {
+			if err := s.emailService.SendInvestmentAgreement(inv.InvestorID, agreementURL); err != nil {
+				//Todo: Implement retry mechanism
+				log.Println("Failed to send email to investor", inv.InvestorID)
+				continue
+			}
+		}
+		// Persist the updated loan state
+		if err := s.repo.Update(ctx, loan); err != nil {
+			return err
+		}
 	}
 
 	return nil
