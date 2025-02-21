@@ -13,6 +13,7 @@ type LoanRepository interface {
 	Create(ctx context.Context, loan *domain.Loan) error
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.Loan, error)
 	Update(ctx context.Context, loan *domain.Loan) error
+	AddInvestment(ctx context.Context, investment *domain.Investment) error
 }
 
 type loanRepository struct {
@@ -100,6 +101,31 @@ func (r *loanRepository) Update(ctx context.Context, loan *domain.Loan) error {
 
 	if rows == 0 {
 		return errors.New("loan not found")
+	}
+
+	return tx.Commit()
+}
+
+func (r *loanRepository) AddInvestment(ctx context.Context, investment *domain.Investment) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	query := `
+		INSERT INTO investments (
+			id, loan_id, investor_id, amount, created_at
+		) VALUES ($1, $2, $3, $4, $5)
+		RETURNING id`
+
+	err = tx.QueryRowContext(ctx, query,
+		investment.ID, investment.LoanID, investment.InvestorID,
+		investment.Amount, investment.CreatedAt,
+	).Scan(&investment.ID)
+
+	if err != nil {
+		return err
 	}
 
 	return tx.Commit()
