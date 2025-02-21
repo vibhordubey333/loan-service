@@ -31,7 +31,9 @@ func main() {
 
 	loanRepo := repository.NewLoanRepository(db)
 
-	loanService := service.NewLoanService(loanRepo)
+	emailService := service.NewEmailService(service.SMTPConfig(cfg.SMTPConfig))
+	pdfService := service.NewPDFService()
+	loanService := service.NewLoanService(loanRepo, emailService, pdfService)
 
 	loanHandler := handler.NewLoanHandler(loanService)
 	r := chi.NewRouter()

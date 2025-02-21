@@ -20,12 +20,16 @@ type LoanService interface {
 }
 
 type loanService struct {
-	repo repository.LoanRepository
+	repo         repository.LoanRepository
+	emailService EmailService
+	pdfService   PDFService
 }
 
-func NewLoanService(repo repository.LoanRepository) LoanService {
+func NewLoanService(repo repository.LoanRepository, emailService EmailService, pdfService PDFService) LoanService {
 	return &loanService{
-		repo: repo,
+		repo:         repo,
+		emailService: emailService,
+		pdfService:   pdfService,
 	}
 }
 

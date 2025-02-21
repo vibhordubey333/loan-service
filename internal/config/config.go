@@ -16,12 +16,13 @@ type SMTPConfig struct {
 }
 
 func Load() *Config {
+	//TODO: Read from yaml or secret server
 	return &Config{
 		Port:        getEnv("PORT", "8080"),
 		DatabaseURL: getEnv("DATABASE_URL", "postgres://loanuser:loanpassword@localhost:5432/loandb?sslmode=disable"),
 		SMTPConfig: SMTPConfig{
 			Host:     getEnv("SMTP_HOST", "smtp.example.com"),
-			Port:     587, // Default SMTP port
+			Port:     587,
 			Username: getEnv("SMTP_USERNAME", "noreply@example.com"),
 			Password: getEnv("SMTP_PASSWORD", "smtp-password"),
 		},
