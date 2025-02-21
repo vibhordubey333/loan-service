@@ -42,6 +42,9 @@ func main() {
 		r.Route("/loans", func(r chi.Router) {
 			r.Post("/", loanHandler.CreateLoan)
 			r.Get("/{id}", loanHandler.GetLoan)
+			r.Post("/{id}/approve", loanHandler.ApproveLoan)
+			r.Post("/{id}/invest", loanHandler.InvestInLoan)
+			r.Post("/{id}/disburse", loanHandler.DisburseLoan)
 		})
 	})
 
