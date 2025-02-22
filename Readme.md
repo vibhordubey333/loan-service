@@ -108,3 +108,22 @@ Request body:
    - Final state when loan is given to borrower
    - Requires signed agreement
    - Records disbursement details
+
+## Future Improvements
+
+1. Features
+   - Email notifications
+   - PDF generation for loan agreement
+   - User authentication and authorization
+   - Payment tracking and gateway integration.
+   - Credit score verification and update
+
+2. Technical Improvements
+   - sqlc library for generating SQL boilerplate code.
+   - Authentication and authorization
+   - MFA
+   - Rate Limiting 
+   - Caching
+   - Retry mechanism for PDF, Email services.
+   - Monitoring, Logging and Tracing.
+   - Performance Optimization.

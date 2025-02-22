@@ -1,0 +1,56 @@
+@startuml Loan Service Architecture
+
+!define RECTANGLE class
+
+skinparam componentStyle uml2
+skinparam component {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+
+package "API Layer" {
+  [HTTP Router] as router
+  [Loan Handler] as handler
+}
+
+package "Service Layer" {
+  [Loan Service] as service
+  [Email Service] as email
+  [PDF Service] as pdf
+}
+
+package "Repository Layer" {
+  [Loan Repository] as repo
+}
+
+package "Domain Layer" {
+  [Loan Entity] as entity
+  [Investment Entity] as investment
+}
+
+database "PostgreSQL" as db {
+  [Loans Table] as loans
+  [Investments Table] as investments
+}
+
+cloud "External Services" {
+  [SMTP Server] as smtp
+  [PDF Generator] as pdfgen
+}
+
+' Flow
+router --> handler : HTTP Requests
+handler --> service : Business Logic
+service --> repo : Data Access
+service --> email : Notifications
+service --> pdf : Document Generation
+repo --> db : Persistence
+email --> smtp : Send Emails
+pdf --> pdfgen : Generate PDFs
+
+' Domain relationships
+entity --> investment : Contains
+loans --> investments : References
+
+@enduml
